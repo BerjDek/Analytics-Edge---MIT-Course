@@ -1,0 +1,28 @@
+quality <- read.csv("quality.csv")
+str(quality)
+table(quality$PoorCare)
+install.packages("caTools")
+library(caTools)
+set.seed(88)
+split <- sample.split(quality$PoorCare, SplitRatio =  0.75 )
+split
+qualityTrain <- subset(quality, split == T)
+qualityTest <- subset(quality, split == F )
+qualityLog <- glm(PoorCare ~ OfficeVisits + Narcotics, data = qualityTrain, family = binomial)
+summary(qualityLog)
+PredictTrain <- predict(qualityLog, type = "response")
+tapply(PredictTrain, qualityTrain$PoorCare, mean)
+qualityLog2 <- glm(PoorCare ~ StartedOnCombination + ProviderCount, data = qualityTrain, family = binomial)
+summary(qualityLog2)
+table(qualityTrain$PoorCare, PredictTrain > 0.5)
+install.packages("ROCR")
+library(ROCR)
+ROCRpred <- prediction(PredictTrain, qualityTrain$PoorCare) 
+ROCRPerf <- performance(ROCRpred, "tpr", "fpr")
+plot(ROCRPerf, colorize = TRUE, print.cutoffs.at=seq(0,1,0.1), text.adj=c(-0.2,1.7))
+
+
+predictTest = predict(qualityLog, type="response", newdata=qualityTest)
+ROCRpredTest = prediction(predictTest, qualityTest$PoorCare)
+auc = as.numeric(performance(ROCRpredTest, "auc")@y.values)
+auc

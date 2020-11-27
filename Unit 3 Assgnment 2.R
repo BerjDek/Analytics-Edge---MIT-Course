@@ -1,0 +1,21 @@
+Parole <- read.csv("parole.csv")
+str(Parole)
+summary(Parole)
+table(Parole$violator)
+Parole$state <- as.factor(Parole$state) 
+Parole$crime <- as.factor(Parole$crime) 
+summary(Parole)
+
+set.seed(144)
+library(caTools)
+split = sample.split(Parole$violator, SplitRatio = 0.7)
+train = subset(Parole, split == TRUE)
+test = subset(Parole, split == FALSE)
+Model1 <- glm(violator ~ . , data = train, family=binomial)
+summary(Model1)
+Ptrain = predict(Model1, type="response", newdata = test)
+max(Ptrain)
+table(test$violator, Ptrain > 0.5)
+12/23
+167/179
+(167 + 12)/(167+12+12+11)
